@@ -1,4 +1,4 @@
-## Why Reliascript
+# Why Reliascript
 
 As software engineers, we have come to believe flaws are a fact of life. Humans make mistakes. Third parties violate their contracts or make breaking changes without notice. The network fails. The hardware fails. An enormous amount of software engineering effort is dedicated to making software systems work reliably. In general, it’s a very hard thing to accomplish.
 
@@ -6,7 +6,7 @@ Reliascript was made to make reliable code easier to write. What if you could wr
 
 In the following overview, we will dive into some of the unique features of Reliascript that allow you to write bug free code.
 
-A Next Generation Type System
+# A Next Generation Type System
 
 Reliascript has a lot of unique constructs that can take some getting used to. The first and most prominent of these constructs is the type checking system. Like many programming languages, Reliascript is statically typed. However, Reliascript type system goes way beyond what you may find in other programming languages. Reliascripts type system is based around the concept of Constraints. Reliascript takes concepts from data validation features that are present in many web and database frameworks, and bakes it directly into the language. Data validation thus is a first class citizen.
 
@@ -153,7 +153,7 @@ This is a lot like having a constraint which is not always enforced. When the co
 TODO: describe pristine / invalid tags here
 
 
-## Sagas, Transactions, Retries, 2 phase commits
+# Sagas, Transactions, Retries, 2 phase commits
 
 One of the most difficult things to get right when your engineering a distributed, cloud based system is how the heck do you ensure reliable execution of your code across a multitude of different networked services, which may include different machines in different data centers, third party vendors, making multiple concurrent writes to a database, etc… when all of these things can potentially fail.
 
@@ -223,7 +223,7 @@ idempotent RecordTransaction(user, account, amount) {
     }
 }
 ```
-### Saga - automatically ties together multiple different reversible steps in an automated manner.
+## Saga - automatically ties together multiple different reversible steps in an automated manner.
 
 ```
 saga MakeTransaction(user, account, amount) {
@@ -275,7 +275,7 @@ function main() {
 }
 ```
 
-## Desirable Properties (in progress)
+# Desirable Properties (in progress)
 
 
 1. Data validation is a first-class citizens
