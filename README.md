@@ -312,13 +312,43 @@ so easy to write. Examples of what you can use traits for:
 7. Declaring whether a value can be automatically computed based on other values
    (but should be stored in the database anyhow for various reasons like querying)
 
+# Execution Environment
+
+## Contexts & Stack-local variables
+
+## Asynchronous Programming
+
+### Timeouts
+
+### Deadline Propagation
+
+### Automatic Retry
+
 # Reliable Distributed and Server Programming
 
-One of the most difficult things to get right when your engineering a distributed, cloud based system is how the heck do you ensure reliable execution of your code across a multitude of different networked services, which may include different machines in different data centers, third party vendors, making multiple concurrent writes to a database, etc… when all of these things can potentially fail.
+One of the most difficult things to get right when your engineering a distributed,
+cloud based system is how the heck do you ensure reliable execution of your code
+across a multitude of different networked services, which may include different
+machines in different data centers, third party vendors, making multiple
+concurrent writes to a database, etc… when all of these things can potentially
+fail.
 
-Over the years, software engineers have thought up a wide variety of different mechanisms to try and ensure a system’s reliable execution. First starters, we have the automatic retry - if we make a network request and it fails, just try it again. Then we have transactions in databases - a set of changes to the database that must all succeed or all fail, without any partial changes. Then we have the even more modern version, the Saga - a set of concrete steps to be executed, each with forward code and associated rollback / reversal code that should get executed in case a subsequent step in the saga fails. Then we have two phased commits, atomic and idempotent operations, and a whole host of other intellectual contraptions.
+Over the years, software engineers have thought up a wide variety of different
+mechanisms to try and ensure a system’s reliable execution. First starters, we
+have the automatic retry - if we make a network request and it fails, just try
+it again. Then we have transactions in databases - a set of changes to the
+database that must all succeed or all fail, without any partial changes. Then
+we have the even more modern version, the Saga - a set of concrete steps to be
+executed, each with forward code and associated rollback / reversal code that
+should get executed in case a subsequent step in the saga fails. Then we have
+two phased commits, atomic and idempotent operations, and a whole host of
+other intellectual contraptions.
 
-Like with data validation, Reliascript has been designed to take these contraptions from being implemented in libraries on top of the language, to being features of the language itself. With this comes a whole host of safety benefits that can be enforced and automated with the Reliascript compiler.
+Like with data validation, Reliascript has been designed to take these
+contraptions from being implemented in libraries on top of the language, to
+being features of the language itself. With this comes a whole host of
+safety benefits that can be enforced and automated with the
+Reliascript compiler.
 
 
 A reversible step - a change that has a forward step and a backward rollback
@@ -359,9 +389,11 @@ reversible SubtractBalance(account, amount) {
 }
 ```
 
-Note - ideally the rollback for a reversible can be automatically created, so the person doesn’t need to explicitly write their own reversible.
+Note - ideally the rollback for a reversible can be automatically created,
+so the person doesn’t need to explicitly write their own reversible.
 
-An idempotent unit - this is a function that comes in one or two parts - the guard and the body.
+An idempotent unit - this is a function that comes in one or two parts -
+the guard and the body.
 
 ```
 idempotent RecordTransaction(user, account, amount) {
@@ -443,7 +475,9 @@ function main() {
    3. Can infer patterns automatically based on actual usage of variables 
 2. Data serialization is a first class citizen
    1. All data is by default persisted unless otherwise specified [Maybe?]
-   2. Data is meant to be stored - no distinction between classes/objects for in-memory usage and classes/objects to be stored to a database - this is given as a parameter of the class / object. Should be no need for an ORM
+   2. Data is meant to be stored - no distinction between classes/objects for
+      in-memory usage and classes/objects to be stored to a database - this
+      is given as a parameter of the class / object. Should be no need for an ORM
 3. Properties associated with data are more declarative and less imperative
    1. Whether or not a variable is meant to be serialized and returned via a public API
    1. Whether or not a variable needs to be sanitized in log messages
@@ -456,21 +490,22 @@ function main() {
    1. Whether a variable or function is deprecated
 4. Idioms that are common in live systems to enhance reliability need to be first-class citizens
    1. Ways to make operations atomic
-   1. Ways to make operations idempotent
-   1. Automatic retries from failures
-   1. Timeouts and deadline propagation
-   1. Automatic restarts on crash
-   1. Message passing, queuing, etc..
-   1. Asynchronous programming, promises, async/await etc..
-   1. Auditability / history of what happened
-   1. Mocking?
-   1. Auto test data generation?
-   1. DB Transactions as first class citizens?
-   1. Request ID?
-   1. Automatic logging of the entire call path?
-   1. Forward and backwards data compatibility?
-   1. Status codes? Error messages?
-   1. Environment Configuration? (ideally dynamic configuration values can be treated as static and can then have patterns enforced)
+   2. Ways to make operations idempotent
+   3. Automatic retries from failures
+   4. Timeouts and deadline propagation
+   5. Automatic restarts on crash
+   6. Message passing, queuing, etc..
+   7. Asynchronous programming, promises, async/await etc..
+   8. Auditability / history of what happened
+   9. Mocking?
+   10. Auto test data generation?
+   11. DB Transactions as first class citizens?
+   12. Request ID?
+   13. Automatic logging of the entire call path?
+   14. Forward and backwards data compatibility?
+   15. Status codes? Error messages?
+   16. Environment Configuration? (ideally dynamic configuration values can be
+       treated as static and can then have patterns enforced)
 
 Other notes:
 1. Like how java forces you to catch all possible exceptions a method can produce or bubble it up
