@@ -1,24 +1,95 @@
 # Why Reliascript
 
-As software engineers, we have come to believe flaws are a fact of life. Humans make mistakes. Third parties violate their contracts or make breaking changes without notice. The network fails. The hardware fails. An enormous amount of software engineering effort is dedicated to making software systems work reliably. In general, it’s a very hard thing to accomplish.
+As software engineers, we have come to believe bugs are a fact of life.
+Humans make mistakes. Third parties violate their contracts. Library
+maintainers make breaking changes without notice. The network fails.
+The hardware fails. The software fails. Systems behave in complex
+and often unpredictable ways, and then fail.
 
-Reliascript was made to make reliable code easier to write. What if you could write code without bugs? Sounds impossible right? Well ordinarily, it probably is. But now enter Reliascript. Reliascript has been designed from the ground up to encourage you to write bug free code. It has been engineered with an entirely new set of constructs built into the language, all of which are designed to make it as difficult as possible to write broken code.
+An enormous amount of software engineering effort is dedicated to 
+making software systems work reliably. In general, it’s a very hard
+thing to accomplish. You already knew that.
 
-In the following overview, we will dive into some of the unique features of Reliascript that allow you to write bug free code.
+Reliascript was made to make reliable code easier to write. What if
+you could write code without bugs? Sounds impossible right? Well 
+ordinarily, it probably is. But now enter Reliascript. Reliascript 
+has been designed from the ground up to encourage you to write bug
+free code. It has been engineered with a new set of constructs built
+into the language, all of which are designed to make it as difficult
+as possible to write broken code.
+
+In the following overview, we will dive into some of the unique
+features of Reliascript that allow you to write bug free code.
+Reliascript has been engineered with the following high level design
+principles:
+
+1. Build best practices into the language, and make it hard not to follow them
+2. Catch more errors during compilation and fewer at runtime
+3. Declaring properties you want is better than coding them imperitively
+4. Focus on web and distributed systems programming
+5. Devs cost more then servers. Sacrifice performance for reliability
 
 # A Next Generation Type System
 
-Reliascript has a lot of unique constructs that can take some getting used to. The first and most prominent of these constructs is the type checking system. Like many programming languages, Reliascript is statically typed. However, Reliascript type system goes way beyond what you may find in other programming languages. Reliascripts type system is based around the concept of Constraints. Reliascript takes concepts from data validation features that are present in many web and database frameworks, and bakes it directly into the language. Data validation thus is a first class citizen.
+Type systems are a core part of many programming languages. Over
+the years, type systems have gone in and out of fashion many times.
+The developer community has oscillated back and forth between
+statically typed and dynamically typed languages about every 10 years.
+
+A goal of Reliascript is to catch as many bugs as possible at compile
+time. Therefore, we naturally mesh with the statically typed camp. A
+wrong type is a wrong type. But when designing Reliascript, we naturally
+asked ourselves - could we go even further? A second design goal of
+Reliascript is to focus on declaration over writing code. 
+
+With these things in mind, Reliascripts type system goes way beyond
+what you may find in other programming languages. Reliascript takes
+concepts from data validation that are present in many web
+and database frameworks, and bakes it directly into the language.
+Data validation is no longer just an extra thing - its an intrinsic
+part of writing Reliascript.
+
+Additionally, Reliascript introduces concepts like Patterns, Kinds,
+Tags, and Traits, to help you catch even more bugs and make it harder
+still to make mistakes. In the following sections, we will discuss
+further what these things are. But here is the basic summary.
+
+1. Constraints are a set of properties that a value must always take on.
+   Constraints are enforced using both compile time checks and data
+   validation at runtime.
+2. Patterns are functions or Regexs that can be used as part of a constraint
+   to ensure that a value is valid. Patterns are enforced with data validation
+   at runtime.
+3. Kinds are like types in conventional statically typed languages.
+   They are enforced entirely at compile time. Unlike traditional languages
+   though, you can apply a Kind to even simple values like integers or strings
+   which might otherwise have the exact same set of constraints and patterns.
+4. Tags are like data validations in traditional languages. They are computed
+   strictly at runtime using lazy semantics, but may be set as required in 
+   certain sections of code, triggering them to be 
+5. Traits are sort of like additional metadata that may be associated with
+   the fields in your schema (or your schema as a whole). Traits are used
+   for all sorts of useful things - like triggering a particular field to
+   be sanitized if it is ever logged, defining what fields are publicly visible
+   through your API and which ones are private, or enforcing role based access
+   schemes to modifications on certain fields.
+
+These 5 systems collectively define the Reliascript type system. Now lets go
+into more details on each of these concepts.
 
 ## What is a constraint?
 
-A constraint is some sort of limit on the values that a particular variable can take. Lets look at the simplest possible constraint - the type check.
+A constraint is some sort of limit on the values that a particular variable
+can take. Let's look at the simplest possible constraint - the type check.
 
 ```
 constraint MyString {type is string};
 ```
 
-With this statement, we have defined a new constraint. The constraint checks only a single thing - that the value of a particular variable is a string. Nothing all that shocking here. But now lets look at something more interesting.
+With this statement, we have defined a new constraint. The constraint
+checks only a single thing - that the value of a particular variable is
+a string. Nothing all that shocking here. But now lets look at something
+more interesting.
 
 ```
 constraint ShortString {
@@ -27,7 +98,12 @@ constraint ShortString {
 }
 ```
 
-Now what do we have here? Now we’ve defined a constraint that a particular value is not just a string, but its a string with a length less than 10! This constraint will be enforced both with static type checks and runtime type checks, to ensure there is no possible way ShortString could ever take on a value longer than 10 characters. Lets try to use this variable in action:
+Now what do we have here? Now we’ve defined a constraint that a particular
+value is not just a string, but it's a string with a length less than 10!
+This constraint will be enforced both with static type checks and runtime
+type checks, to ensure there is no possible way ShortString could ever
+take on a value longer than 10 characters. Let's try to use this variable
+in action:
 
 ```
 const value: ShortString;
@@ -36,9 +112,16 @@ value = “imshort”; // This is fine, because imshort is only 7 characters lon
 value = “im really long!”; // This will give you a compiler error
 ```
 
-But wait, I hear you say! This will never work! What about user input? How can we possibly enforce string length at the compiler level, when users can type in whatever they want? Good question.
+But wait, I hear you say! This will never work! What about user input?
+How can we possibly enforce string length at the compiler level, when 
+users can type in whatever they want? Good question.
 
-When a user provides input, it is usually in the form of an unconstrained or partially constrained value. The act of validating the user's input is called constraining the value, and must be done explicitly (TODO: should we allow automatic inference of what constraints to apply?). Lets see this in action:
+When a user provides input, it is usually in the form of an unconstrained
+or partially constrained value. The act of validating the user's input
+is called constraining the value, and must be done explicitly (TODO: 
+should we allow automatic inference of what constraints to apply?). 
+Let's see this in action:
+
 ```
 import io;
 const value = io.readUserInput(); // Value is now constrained only by {type: string}
@@ -61,7 +144,11 @@ const shortValue: ShortString;
 shortValue = value; // This works fine now, because value has been previously constrained, altering its type.
 ```
 
-It’s important to note that the constraints themselves live independently of the name they are given. E.g., the following code is also acceptable, even though we don’t explicitly constrain value with ShortString:
+It’s important to note that the constraints themselves live independently
+of the name they are given (this contrasts with Kinds described next, which
+are statically enforced) E.g. the following code is also acceptable, even
+though we don’t explicitly constrain the value with ShortString.
+
 ```
 import io;
 
@@ -73,10 +160,14 @@ const shortValue: ShortString;
 shortValue = value;
 ```
 
-As you can see, Reliascript type system introduces a whole new level of static type checking that has never been done before in other languages.
+As you can see, Reliascript's type system introduces a completely in-built way
+of performing data validation, by bringing it into the type system.
 
-## Varieties of Constraints
-Reliascript has a huge number of built in constraints meant to enable static type checking in an extremely wide variety of scenarios. Here is a non exhaustive list:
+### Varieties of Constraints
+
+Reliascript has a huge number of built-in constraints meant to enable
+static type checking in an extremely wide variety of scenarios.
+Here is a non-exhaustive list:
 
 1. What type a particular value is, e.g. date, string,
 2. String length minimums and maximums
@@ -85,9 +176,15 @@ Reliascript has a huge number of built in constraints meant to enable static typ
 5. Whether a number is between a given minimum or maximum value
 6. Whether a particular value is supposed to change or be updated at the same time as another value (more on this later)
 
-### Pattern Matching Constraint
+## Patterns
 
-Let's go into a bit more detail on the pattern matching constraint. Imagine we wanted to have a string to represent an email address, and we want to ensure that it can never contain anything that isn’t a valid email address. Reliascript allows you to do the following:
+[TODO] Should patterns be used to describe all possible validations that can be applied? including minimums and maximums?
+
+Patterns are used to describe in more detail what values are valid for 
+a particular variable. Imagine we wanted to have a string to represent
+an email address, and we want to ensure that it can never contain
+anything that isn’t a valid email address. Reliascript allows you
+to do the following:
 
 ```
 const value: {
@@ -105,14 +202,36 @@ Under the hood, patterns take one of two forms:
 1. A regular expression which must match the string
 2. A function which returns a boolean value on whether a given value meets the desired criteria
 
-The pattern matching constraint provides you with a powerful way to extend your type system. In other programming languages, this might have been accomplished by creating a subclass of some built-in string class with your added validation. Then you could rely on the existing type enforcement semantics of your compiler.
+The pattern matching constraint provides you with a powerful way to extend your type system. 
+In other programming languages, this might have been accomplished by creating a subclass of
+some built-in string class with your added validation. Then you could rely on the existing
+type enforcement semantics of your compiler.
 
-In Reliascript, data validation has become a first class citizen within the language, enforced with a combination of static compile time and runtime checks. As a consequence, it becomes downright impossible to assign a bad value into a variable. At the same time, you can avoid having data validation getting duplicated in hundreds of places throughout your code, as some extra cautious teams sometimes do. When the type system has seen a particular value has already been tested against a constraint, it doesn’t need to repeat it.
+In Reliascript, data validation has become a first class citizen within the language,
+enforced with a combination of static compile time and runtime checks. 
+As a consequence, it becomes downright impossible to assign a bad value into a variable.
+At the same time, you can avoid having data validation getting duplicated in hundreds
+of places throughout your code, as some extra cautious teams sometimes do. 
+When the type system has seen a particular value has already been tested against
+a constraint, it doesn’t need to repeat it.
 
-## Tagging
-Tags are sort of like additional pieces of type information that can be attached to a field.
+## Kinds
 
-A field can either be constrained to a tag, e.g. all values it takes on must be given that tag. Imagine, for example, you have some email marketing software. You may have a common Email constraint, which you reuse between a bunch of different models within your application. However, you really don’t want to confuse the email address of the user, e.g. their login email address, with the email addresses of the contacts they are sending emails to. For this, you can use tags!
+Kinds are a little bit closer to what you might see in a traditional type system.
+Where as Patterns are meant to define the shape that your data takes at a low-level,
+a Kind is meant to imply more of a high level interpretation of the data. A Kind
+can be used to distinguish between two different groups of variables which can 
+otherwise take on similar values. For example, you don't want to confuse an 
+integer describing a process PID with an integer describing a timeout in milliseconds.
+They are both integers, but they aren't the same.
+
+When you constrain a variable to a Kind, all values assigned to it must be explicitly
+given that Kind. Imagine, for example, you have some email marketing software.
+You may have a common Email constraint, which you reuse between a bunch of
+different models within your application. However, you really don’t want to
+confuse the email address of the user, e.g. their login email address, with
+the email addresses of the contacts they are sending emails to. For this, you
+can use kinds!
 
 ```
 // We define a common email address constraint, used for all email addresses in the system
@@ -123,37 +242,77 @@ constraint CommonEmail {
     length > 0;
 }
 
-// Now, we define two different tags. One is for the users email, the other is for a contacts email
-tag UserEmail;
-tag ContactEmail;
+// Now, we define two different kinds. One is for the users email, the other is for a contacts email
+kind UserEmail;
+kind ContactEmail;
 
 constraint UserEmail {
     constrained by CommonEmail;
-    tagged by UserEmail;
+    kind of UserEmail;
 }
 
 constraint ContactEmail {
     constrained by CommonEmail;
-    tagged by ContactEmail;
+    kind of ContactEmail;
 }
 
 const value: UserEmail;
 value = “genixpro@gmail.com”;
 
 Const secondValue: ContactEmail;
-secondValue = value; // Yields a compiler error, because value is tagged as UserEmail, and secondValue is tagged as ContactEmail;
-// Although they are technically identical in the constraints they match, because they have different tags, so the compiler will print an error
+secondValue = value; // Yields a compiler error, because value has a kind of UserEmail, 
+                     // and secondValue has kidn of ContactEmail;
+                     // Although they are technically identical in the constraints they match, 
+                     // because they have different Kinds, so the compiler will print an error
 ```
 
-### Dynamic Tags
-Tags do not have to be always statically provided. It's possible to create tags which depend upon the exact values that an object takes in production - so some values will have a given tag, and some will not, even though they have the same underlying type.
+## Tags
 
-This is a lot like having a constraint which is not always enforced. When the constraint matches, the value takes on the given tag. When the constraint fails, the value does not take on the given tag.
+A tag in some sense is the opposite of a Kind. Tags are focused mostly on runtime enforcement. 
+A value may or may not have a specific tag associated with it, depending on the value it 
+takes on at runtime. 
+
+This is a lot like having a constraint which is not always enforced. When the constraint
+matches, the value takes on the given tag. When the constraint fails, the value does
+not take on the given tag.
+
+If you define a function that requires a variable to have a specific tag, the compiler
+will automatically introduce the associated runtime data validation to ensure the
+value meets all of the required constraints to be given that tag. 
 
 TODO: describe pristine / invalid tags here
 
+## Traits
 
-# Sagas, Transactions, Retries, 2 phase commits
+A trait is like a piece of metadata associated with a particular variable, constraint, 
+or kind. Traits can be used for a variety of different forms of metaprogramming, 
+by giving you a declarative way to describe the behaviours, rules, and properties
+you want your data to have.
+
+Traits in Reliascript have nothing to do with "Traits" used in some object-oriented
+languages like Scala, which are sometimes also called "Mixin classes". A trait in
+Reliascript is just a property that is statically declared and associated with a
+type.
+
+Traits are used for all sorts of goodies, and are a key feature that make Reliascript
+so easy to write. Examples of what you can use traits for:
+
+1. Defining whether a particular value contains PII or personally identifiable 
+   information, and therefore should be sanitized if that value is ever printed
+   to logs.
+2. Giving extra information that allows your classes values to be serialized using
+   tools like Google Protocol Buffers or Apache Thrift
+3. Declaring whether a variable should be visible on public API endpoints,
+   or should just be kept private.
+4. Defining the RBAC permissions that should be enforced for a particular field -
+   who is allowed to read it? Who is allowed to modify it?
+5. Declaring whether an index should be created in the database for a field
+   or set of fields.
+6. Declaring whether a value is read-only
+7. Declaring whether a value can be automatically computed based on other values
+   (but should be stored in the database anyhow for various reasons like querying)
+
+# Reliable Distributed and Server Programming
 
 One of the most difficult things to get right when your engineering a distributed, cloud based system is how the heck do you ensure reliable execution of your code across a multitude of different networked services, which may include different machines in different data centers, third party vendors, making multiple concurrent writes to a database, etc… when all of these things can potentially fail.
 
