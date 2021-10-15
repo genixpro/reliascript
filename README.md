@@ -49,21 +49,21 @@ and database frameworks, and bakes it directly into the language.
 Data validation is no longer just an extra thing - its an intrinsic
 part of writing Reliascript.
 
-Additionally, Reliascript introduces concepts like Patterns, Kinds,
+Additionally, Reliascript introduces concepts like Constraints, Kinds,
 Tags, and Traits, to help you catch even more bugs and make it harder
 still to make mistakes. In the following sections, we will discuss
 further what these things are. But here is the basic summary.
 
-1. Constraints are a set of properties that a value must always take on.
-   Constraints are enforced using both compile time checks and data
+1. Patterns are a set of properties that a value must always take on.
+   Patterns are enforced using both compile time checks and data
    validation at runtime.
-2. Patterns are functions or Regexs that can be used as part of a constraint
-   to ensure that a value is valid. Patterns are enforced with data validation
+2. Constraints are functions or Regexs that can be used as part of a pattern
+   to ensure that a value is valid. Constraints are enforced with data validation
    at runtime.
 3. Kinds are like types in conventional statically typed languages.
    They are enforced entirely at compile time. Unlike traditional languages
    though, you can apply a Kind to even simple values like integers or strings
-   which might otherwise have the exact same set of constraints and patterns.
+   which might otherwise have the exact same set of patterns and constraints.
 4. Tags are like data validations in traditional languages. They are computed
    strictly at runtime using lazy semantics, but may be set as required in 
    certain sections of code, triggering them to be 
@@ -77,30 +77,30 @@ further what these things are. But here is the basic summary.
 These 5 systems collectively define the Reliascript type system. Now lets go
 into more details on each of these concepts.
 
-## What is a constraint?
+## What is a pattern?
 
-A constraint is some sort of limit on the values that a particular variable
-can take. Let's look at the simplest possible constraint - the type check.
+A pattern is some sort of limit on the values that a particular variable
+can take. Let's look at the simplest possible pattern - the type check.
 
 ```
-constraint MyString {type is string};
+pattern MyString {type is string};
 ```
 
-With this statement, we have defined a new constraint. The constraint
+With this statement, we have defined a new pattern. The pattern
 checks only a single thing - that the value of a particular variable is
 a string. Nothing all that shocking here. But now lets look at something
 more interesting.
 
 ```
-constraint ShortString {
+pattern ShortString {
     type is string;
     length < 10;
 }
 ```
 
-Now what do we have here? Now we’ve defined a constraint that a particular
+Now what do we have here? Now we’ve defined a pattern that a particular
 value is not just a string, but it's a string with a length less than 10!
-This constraint will be enforced both with static type checks and runtime
+This pattern will be enforced both with static type checks and runtime
 type checks, to ensure there is no possible way ShortString could ever
 take on a value longer than 10 characters. Let's try to use this variable
 in action:
@@ -119,7 +119,7 @@ users can type in whatever they want? Good question.
 When a user provides input, it is usually in the form of an unconstrained
 or partially constrained value. The act of validating the user's input
 is called constraining the value, and must be done explicitly (TODO: 
-should we allow automatic inference of what constraints to apply?). 
+should we allow automatic inference of what patterns to apply?). 
 Let's see this in action:
 
 ```
@@ -127,9 +127,9 @@ import io;
 const value = io.readUserInput(); // Value is now constrained only by {type: string}
 
 const shortValue: ShortString;
-shortValue = value; // This will lead to a compiler error, because value does not have the length constraint imposed on it. Instead do the following:
+shortValue = value; // This will lead to a compiler error, because value does not have the length pattern imposed on it. Instead do the following:
 
-shortValue = value constrained by ShortString; // This will trigger runtime data validation. If value does not meet the constraints imposed upon it by ShortString, then an exception is raised.
+shortValue = value constrained by ShortString; // This will trigger runtime data validation. If value does not meet the patterns imposed upon it by ShortString, then an exception is raised.
 ```
 
 You can also constrain values in place, without having to declare a whole new value.
@@ -144,7 +144,7 @@ const shortValue: ShortString;
 shortValue = value; // This works fine now, because value has been previously constrained, altering its type.
 ```
 
-It’s important to note that the constraints themselves live independently
+It’s important to note that the patterns themselves live independently
 of the name they are given (this contrasts with Kinds described next, which
 are statically enforced) E.g. the following code is also acceptable, even
 though we don’t explicitly constrain the value with ShortString.
@@ -163,24 +163,24 @@ shortValue = value;
 As you can see, Reliascript's type system introduces a completely in-built way
 of performing data validation, by bringing it into the type system.
 
-### Varieties of Constraints
+### Varieties of Patterns
 
-Reliascript has a huge number of built-in constraints meant to enable
+Reliascript has a huge number of built-in patterns meant to enable
 static type checking in an extremely wide variety of scenarios.
 Here is a non-exhaustive list:
 
 1. What type a particular value is, e.g. date, string,
 2. String length minimums and maximums
 3. Whether a value is required or optional (e.g. its value can be null)
-4. Whether a string matches a particular pattern, such an email, phone number or ip address
+4. Whether a string matches a particular constraint, such an email, phone number or ip address
 5. Whether a number is between a given minimum or maximum value
 6. Whether a particular value is supposed to change or be updated at the same time as another value (more on this later)
 
-## Patterns
+## Constraints
 
-[TODO] Should patterns be used to describe all possible validations that can be applied? including minimums and maximums?
+[TODO] Should constraints be used to describe all possible validations that can be applied? including minimums and maximums?
 
-Patterns are used to describe in more detail what values are valid for 
+Constraints are used to describe in more detail what values are valid for 
 a particular variable. Imagine we wanted to have a string to represent
 an email address, and we want to ensure that it can never contain
 anything that isn’t a valid email address. Reliascript allows you
@@ -189,20 +189,20 @@ to do the following:
 ```
 const value: {
     type is string;
-    matches pattern email;
+    matches constraint email;
 }
 
-value = “cheese!”; // This will give you a compiler error, because the given string does not match the email pattern
+value = “cheese!”; // This will give you a compiler error, because the given string does not match the email constraint
 
-value = “cheese@example.com”; // This is allowed, because the given value matches the email pattern
+value = “cheese@example.com”; // This is allowed, because the given value matches the email constraint
 
 ```
 
-Under the hood, patterns take one of two forms:
+Under the hood, constraints take one of two forms:
 1. A regular expression which must match the string
 2. A function which returns a boolean value on whether a given value meets the desired criteria
 
-The pattern matching constraint provides you with a powerful way to extend your type system. 
+The constraint matching pattern provides you with a powerful way to extend your type system. 
 In other programming languages, this might have been accomplished by creating a subclass of
 some built-in string class with your added validation. Then you could rely on the existing
 type enforcement semantics of your compiler.
@@ -213,12 +213,12 @@ As a consequence, it becomes downright impossible to assign a bad value into a v
 At the same time, you can avoid having data validation getting duplicated in hundreds
 of places throughout your code, as some extra cautious teams sometimes do. 
 When the type system has seen a particular value has already been tested against
-a constraint, it doesn’t need to repeat it.
+a pattern, it doesn’t need to repeat it.
 
 ## Kinds
 
 Kinds are a little bit closer to what you might see in a traditional type system.
-Where as Patterns are meant to define the shape that your data takes at a low-level,
+Where as Constraints are meant to define the shape that your data takes at a low-level,
 a Kind is meant to imply more of a high level interpretation of the data. A Kind
 can be used to distinguish between two different groups of variables which can 
 otherwise take on similar values. For example, you don't want to confuse an 
@@ -227,17 +227,17 @@ They are both integers, but they aren't the same.
 
 When you constrain a variable to a Kind, all values assigned to it must be explicitly
 given that Kind. Imagine, for example, you have some email marketing software.
-You may have a common Email constraint, which you reuse between a bunch of
+You may have a common Email pattern, which you reuse between a bunch of
 different models within your application. However, you really don’t want to
 confuse the email address of the user, e.g. their login email address, with
 the email addresses of the contacts they are sending emails to. For this, you
 can use kinds!
 
 ```
-// We define a common email address constraint, used for all email addresses in the system
-constraint CommonEmail {
+// We define a common email address pattern, used for all email addresses in the system
+pattern CommonEmail {
     type is string;
-    matches pattern email;
+    matches constraint email;
     length <= 10;
     length > 0;
 }
@@ -246,12 +246,12 @@ constraint CommonEmail {
 kind UserEmail;
 kind ContactEmail;
 
-constraint UserEmail {
+pattern UserEmail {
     constrained by CommonEmail;
     kind of UserEmail;
 }
 
-constraint ContactEmail {
+pattern ContactEmail {
     constrained by CommonEmail;
     kind of ContactEmail;
 }
@@ -262,7 +262,7 @@ value = “genixpro@gmail.com”;
 Const secondValue: ContactEmail;
 secondValue = value; // Yields a compiler error, because value has a kind of UserEmail, 
                      // and secondValue has kidn of ContactEmail;
-                     // Although they are technically identical in the constraints they match, 
+                     // Although they are technically identical in the patterns they match, 
                      // because they have different Kinds, so the compiler will print an error
 ```
 
@@ -272,19 +272,19 @@ A tag in some sense is the opposite of a Kind. Tags are focused mostly on runtim
 A value may or may not have a specific tag associated with it, depending on the value it 
 takes on at runtime. 
 
-This is a lot like having a constraint which is not always enforced. When the constraint
-matches, the value takes on the given tag. When the constraint fails, the value does
+This is a lot like having a pattern which is not always enforced. When the pattern
+matches, the value takes on the given tag. When the pattern fails, the value does
 not take on the given tag.
 
 If you define a function that requires a variable to have a specific tag, the compiler
 will automatically introduce the associated runtime data validation to ensure the
-value meets all of the required constraints to be given that tag. 
+value meets all of the required patterns to be given that tag. 
 
 TODO: describe pristine / invalid tags here
 
 ## Traits
 
-A trait is like a piece of metadata associated with a particular variable, constraint, 
+A trait is like a piece of metadata associated with a particular variable, pattern, 
 or kind. Traits can be used for a variety of different forms of metaprogramming, 
 by giving you a declarative way to describe the behaviours, rules, and properties
 you want your data to have.
@@ -417,7 +417,7 @@ type Person in memory {
         type is string;
         value.length < 250;
         always exists;
-        value matches pattern data.email;
+        value matches constraint data.email;
     }
 }
 
@@ -439,8 +439,8 @@ function main() {
 
 1. Data validation is a first-class citizens
    1. Goes beyond just type checking although that’s part of it 
-   2. As many constraints as possible can be statically checked at compile time 
-   3. Can infer constraints automatically based on actual usage of variables 
+   2. As many patterns as possible can be statically checked at compile time 
+   3. Can infer patterns automatically based on actual usage of variables 
 2. Data serialization is a first class citizen
    1. All data is by default persisted unless otherwise specified [Maybe?]
    2. Data is meant to be stored - no distinction between classes/objects for in-memory usage and classes/objects to be stored to a database - this is given as a parameter of the class / object. Should be no need for an ORM
@@ -470,7 +470,7 @@ function main() {
    1. Automatic logging of the entire call path?
    1. Forward and backwards data compatibility?
    1. Status codes? Error messages?
-   1. Environment Configuration? (ideally dynamic configuration values can be treated as static and can then have constraints enforced)
+   1. Environment Configuration? (ideally dynamic configuration values can be treated as static and can then have patterns enforced)
 
 Other notes:
 1. Like how java forces you to catch all possible exceptions a method can produce or bubble it up
